@@ -2,6 +2,13 @@
  * Import Dependencies
  */
 import * as express from 'express';
+/**
+ * Import Routes
+ */
+import blockchainRouter from './blockchain/router';
+import clockRouter from './clock/router';
+import mineRouter from './mine/router';
+import transactionRouter from './transactions/router';
 
 /**
  * Initialize Router
@@ -9,14 +16,12 @@ import * as express from 'express';
 const router = express.Router();
 
 /**
- * Import Routes
- */
-import clockRouter from './clock/router';
-
-/**
  * Bind Routes
  */
 router.use('/clock', clockRouter);
+router.use('/blockchain', blockchainRouter);
+router.use('/transactions', transactionRouter);
+router.use('/mine', mineRouter);
 
 /**
  * Export Module

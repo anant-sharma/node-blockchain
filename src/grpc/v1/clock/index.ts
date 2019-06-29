@@ -3,7 +3,7 @@ import * as grpc from 'grpc';
 import * as path from 'path';
 import { Clock } from '../../../controllers/v1/clock';
 
-const PROTO_PATH = path.join(__dirname, '../../../../protos/v1/clock.proto');
+const PROTO_PATH = path.join(__dirname, '../../../../protos/v1/chain.proto');
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     defaults: true,
@@ -33,7 +33,7 @@ function getTimeStamp(call: grpc.Call, callback: any) {
 }
 
 export const addProtoService = (server: grpc.Server): void => {
-    server.addService(v1ProtoDescriptor.Clock.service, {
+    server.addService(v1ProtoDescriptor.Blockchain.service, {
         GetTimeStamp: getTimeStamp,
     });
 };
