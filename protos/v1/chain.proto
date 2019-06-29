@@ -1,14 +1,14 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "io.nodeboilerplate.v1.clock";
-option java_outer_classname = "ClockProto";
-option objc_class_prefix = "CLK";
+option java_package = "io.nodeblockchain.v1.chain";
+option java_outer_classname = "ChainProto";
+option objc_class_prefix = "BCHAIN";
 
 package v1;
 
 // Interface exported by the server.
-service Clock {
+service Blockchain {
 
     // Returns Current Timestamp
     rpc GetTimeStamp(Null) returns (Timestamp) {}

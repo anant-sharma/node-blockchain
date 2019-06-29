@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/anant-sharma/node-boilerplate.svg?branch=master)](https://travis-ci.org/anant-sharma/node-boilerplate)
+[![Build Status](https://travis-ci.org/anant-sharma/node-blockchain.svg?branch=master)](https://travis-ci.org/anant-sharma/node-blockchain)
 
-# Node Boilerplate
+# Node Blockchain
 
-Boilerplate for nodejs applications
+Nodejs based block chain

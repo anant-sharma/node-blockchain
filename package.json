@@ -1,7 +1,7 @@
 {
-    "name": "node-boilerplate",
+    "name": "node-blockchain",
     "version": "1.0.0",
-    "description": "Boilerplate for nodejs applications",
+    "description": "Nodejs powered blockchain",
     "main": "src/index.js",
     "engines": {
         "node": ">=10.15.0"
@@ -19,14 +19,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/anant-sharma/node-boilerplate.git"
+        "url": "git+https://github.com/anant-sharma/node-blockchain.git"
     },
     "author": "Anant Sharma <anantatnet@gmail.com>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/anant-sharma/node-boilerplate/issues"
+        "url": "https://github.com/anant-sharma/node-blockchain/issues"
     },
-    "homepage": "https://github.com/anant-sharma/node-boilerplate#readme",
+    "homepage": "https://github.com/anant-sharma/node-blockchain#readme",
     "dependencies": {
         "@grpc/proto-loader": "^0.4.0",
         "amqplib": "^0.5.3",
