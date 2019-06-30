@@ -14,19 +14,7 @@ const router = express.Router();
  */
 router.post('/', (req: express.Request, res: express.Response) => {
     try {
-        const lastBlock = blockchain.getLastBlock();
-        const previousBlockHash = lastBlock.previousBlockHash;
-
-        const currentBlockData = {
-            index: lastBlock.index + 1,
-            transactions: blockchain.getPendingTransactions(),
-        };
-
-        const nonce = blockchain.proofOfWork(previousBlockHash, currentBlockData);
-
-        const blockHash = blockchain.hashBlock(previousBlockHash, currentBlockData, nonce);
-
-        const newBlock = blockchain.createNewBlock(nonce, lastBlock.hash, blockHash);
+        const newBlock = blockchain.mineBlock();
 
         res.status(200).json({
             block: newBlock,

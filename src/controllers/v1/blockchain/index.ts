@@ -69,7 +69,7 @@ class Blockchain {
 
         this.pubsub.publish({
             Data: transaction,
-            Event: PUBSUB_EVENTS.TRANSACTIONS.CREATED,
+            Event: PUBSUB_EVENTS.TRANSACTION.CREATED,
         });
 
         return transaction;
@@ -105,13 +105,59 @@ class Blockchain {
         return this.pendingTransactions;
     }
 
+    public addMinedBlockToChain(newBlock: IBlock) {
+        const lastBlock: IBlock = this.getLastBlock();
+
+        /**
+         * Check if hashes matches
+         */
+        const isHashCorrect = lastBlock.hash === newBlock.previousBlockHash;
+
+        /**
+         * Check if index matches
+         */
+        const isIndexCorrect = lastBlock.index + 1 === newBlock.index;
+
+        if (isHashCorrect && isIndexCorrect) {
+            this.chain.push(newBlock);
+            this.pendingTransactions = [];
+        }
+    }
+
+    public mineBlock(): IBlock {
+        const lastBlock = this.getLastBlock();
+        const previousBlockHash = lastBlock.previousBlockHash;
+
+        const currentBlockData = {
+            index: lastBlock.index + 1,
+            transactions: this.getPendingTransactions(),
+        };
+
+        const nonce = this.proofOfWork(previousBlockHash, currentBlockData);
+
+        const blockHash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
+
+        const newBlock = this.createNewBlock(nonce, lastBlock.hash, blockHash);
+
+        this.pubsub.publish({
+            Data: newBlock,
+            Event: PUBSUB_EVENTS.BLOCK.MINED,
+        });
+
+        return newBlock;
+    }
+
     private addSubscribers() {
         this.pubsub.subscribe((msg: IPubSubMessage) => {
             const { Event, Data } = msg;
 
             switch (Event) {
-                case PUBSUB_EVENTS.TRANSACTIONS.CREATED: {
+                case PUBSUB_EVENTS.TRANSACTION.CREATED: {
                     this.addTransactionToPendingTransactions(Data);
+                    break;
+                }
+                case PUBSUB_EVENTS.BLOCK.MINED: {
+                    this.addMinedBlockToChain(Data);
                     break;
                 }
             }

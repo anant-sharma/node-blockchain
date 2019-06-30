@@ -7,8 +7,11 @@ import { delay, generateUUID } from '../../../common/utils';
 import { mqConfig } from '../../../config/config';
 
 export const PUBSUB_EVENTS = {
-    TRANSACTIONS: {
-        CREATED: 'TRANSACTIONS.CREATED',
+    BLOCK: {
+        MINED: 'BLOCK.MINED',
+    },
+    TRANSACTION: {
+        CREATED: 'TRANSACTION.CREATED',
     },
 };
 
