@@ -66,6 +66,7 @@ export class MQ {
             durable: true,
         }
     ): Promise<amqp.Replies.AssertQueue> {
+        this.queues.push(queue);
         return this.channel.assertQueue(queue, options);
     }
 

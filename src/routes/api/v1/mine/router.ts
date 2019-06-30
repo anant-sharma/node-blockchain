@@ -26,7 +26,7 @@ router.post('/', (req: express.Request, res: express.Response) => {
 
         const blockHash = blockchain.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-        const newBlock = blockchain.createNewBlock(nonce, previousBlockHash, blockHash);
+        const newBlock = blockchain.createNewBlock(nonce, lastBlock.hash, blockHash);
 
         res.status(200).json({
             block: newBlock,

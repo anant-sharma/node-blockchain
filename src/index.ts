@@ -101,7 +101,7 @@ const ensureCertificates = (serverKeyFilePath: string, certFilePath: string) => 
 
 const init = () => {
     initAppServer();
-    initGrpcServer();
-    initHTTP2Server();
+    // initGrpcServer();
+    // initHTTP2Server();
 };
 init();

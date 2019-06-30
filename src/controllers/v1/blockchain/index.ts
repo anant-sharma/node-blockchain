@@ -3,6 +3,8 @@
  * handle operations corresponding to blockchain
  */
 import * as sha256 from 'sha256';
+import { generateUUID } from '../../../common/utils';
+import { IPubSubMessage, PubSub, PUBSUB_EVENTS } from '../pubsub/pubsub';
 
 interface IBlock {
     index: number;
@@ -22,14 +24,19 @@ interface ITransaction {
     amount: number;
     sender: string;
     recipient: string;
+    transactionId: string;
 }
 
 class Blockchain {
     private chain: IBlock[] = [];
     private pendingTransactions: ITransaction[] = [];
 
+    private pubsub: PubSub;
+
     constructor() {
         this.createNewBlock(11, sha256('previousBlockHash'), sha256('hash'));
+        this.pubsub = new PubSub('bc.msg.exchange');
+        this.addSubscribers();
     }
 
     public createNewBlock(nonce: number, previousBlockHash: string, hash: string): IBlock {
@@ -52,15 +59,24 @@ class Blockchain {
         return this.chain[this.chain.length - 1];
     }
 
-    public createNewTransaction(amount: number, sender: string, recipient: string): number {
-        const newTransaction: ITransaction = {
+    public createNewTransaction(amount: number, sender: string, recipient: string): ITransaction {
+        const transaction = {
             amount,
             recipient,
             sender,
+            transactionId: generateUUID(),
         };
 
-        this.pendingTransactions.push(newTransaction);
+        this.pubsub.publish({
+            Data: transaction,
+            Event: PUBSUB_EVENTS.TRANSACTIONS.CREATED,
+        });
 
+        return transaction;
+    }
+
+    public addTransactionToPendingTransactions(transaction: ITransaction): number {
+        this.pendingTransactions.push(transaction);
         return this.getLastBlock().index + 1;
     }
 
@@ -87,6 +103,19 @@ class Blockchain {
 
     public getPendingTransactions(): ITransaction[] {
         return this.pendingTransactions;
+    }
+
+    private addSubscribers() {
+        this.pubsub.subscribe((msg: IPubSubMessage) => {
+            const { Event, Data } = msg;
+
+            switch (Event) {
+                case PUBSUB_EVENTS.TRANSACTIONS.CREATED: {
+                    this.addTransactionToPendingTransactions(Data);
+                    break;
+                }
+            }
+        });
     }
 }
 
