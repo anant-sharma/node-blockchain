@@ -7,29 +7,29 @@ import { generateUUID } from '../../../common/utils';
 import { IPubSubMessage, PubSub, PUBSUB_EVENTS } from '../pubsub/pubsub';
 
 interface IBlock {
-    index: number;
-    timestamp: number;
-    transactions: ITransaction[];
-    nonce: number;
-    hash: string;
-    previousBlockHash: string;
+    Index: number;
+    Timestamp: number;
+    Transactions: ITransaction[];
+    Nonce: number;
+    Hash: string;
+    PreviousBlockHash: string;
 }
 
 interface IBlockData {
-    index: number;
-    transactions: ITransaction[];
+    Index: number;
+    Transactions: ITransaction[];
 }
 
 interface ITransaction {
-    amount: number;
-    sender: string;
-    recipient: string;
-    transactionId: string;
+    Amount: number;
+    Sender: string;
+    Recipient: string;
+    TransactionID: string;
 }
 
 class Blockchain {
-    private chain: IBlock[] = [];
-    private pendingTransactions: ITransaction[] = [];
+    private Chain: IBlock[] = [];
+    private PendingTransactions: ITransaction[] = [];
 
     private pubsub: PubSub;
 
@@ -41,30 +41,30 @@ class Blockchain {
 
     public createNewBlock(nonce: number, previousBlockHash: string, hash: string): IBlock {
         const block: IBlock = {
-            hash,
-            index: this.chain.length + 1,
-            nonce,
-            previousBlockHash,
-            timestamp: Date.now(),
-            transactions: this.pendingTransactions,
+            Hash: hash,
+            Index: this.Chain.length + 1,
+            Nonce: nonce,
+            PreviousBlockHash: previousBlockHash,
+            Timestamp: Date.now(),
+            Transactions: this.PendingTransactions,
         };
 
-        this.pendingTransactions = [];
-        this.chain.push(block);
+        this.PendingTransactions = [];
+        this.Chain.push(block);
 
         return block;
     }
 
     public getLastBlock(): IBlock {
-        return this.chain[this.chain.length - 1];
+        return this.Chain[this.Chain.length - 1];
     }
 
     public createNewTransaction(amount: number, sender: string, recipient: string): ITransaction {
         const transaction = {
-            amount,
-            recipient,
-            sender,
-            transactionId: generateUUID(),
+            Amount: amount,
+            Recipient: recipient,
+            Sender: sender,
+            TransactionID: generateUUID(),
         };
 
         this.pubsub.publish({
@@ -76,8 +76,8 @@ class Blockchain {
     }
 
     public addTransactionToPendingTransactions(transaction: ITransaction): number {
-        this.pendingTransactions.push(transaction);
-        return this.getLastBlock().index + 1;
+        this.PendingTransactions.push(transaction);
+        return this.getLastBlock().Index + 1;
     }
 
     public hashBlock(previousBlockHash: string, currentBlockData: IBlockData, nonce: number) {
@@ -98,11 +98,11 @@ class Blockchain {
     }
 
     public getChain() {
-        return this.chain;
+        return this.Chain;
     }
 
     public getPendingTransactions(): ITransaction[] {
-        return this.pendingTransactions;
+        return this.PendingTransactions;
     }
 
     public addMinedBlockToChain(newBlock: IBlock) {
@@ -111,33 +111,33 @@ class Blockchain {
         /**
          * Check if hashes matches
          */
-        const isHashCorrect = lastBlock.hash === newBlock.previousBlockHash;
+        const isHashCorrect = lastBlock.Hash === newBlock.PreviousBlockHash;
 
         /**
          * Check if index matches
          */
-        const isIndexCorrect = lastBlock.index + 1 === newBlock.index;
+        const isIndexCorrect = lastBlock.Index + 1 === newBlock.Index;
 
         if (isHashCorrect && isIndexCorrect) {
-            this.chain.push(newBlock);
-            this.pendingTransactions = [];
+            this.Chain.push(newBlock);
+            this.PendingTransactions = [];
         }
     }
 
     public mineBlock(): IBlock {
         const lastBlock = this.getLastBlock();
-        const previousBlockHash = lastBlock.previousBlockHash;
+        const previousBlockHash = lastBlock.PreviousBlockHash;
 
         const currentBlockData = {
-            index: lastBlock.index + 1,
-            transactions: this.getPendingTransactions(),
+            Index: lastBlock.Index + 1,
+            Transactions: this.getPendingTransactions(),
         };
 
         const nonce = this.proofOfWork(previousBlockHash, currentBlockData);
 
         const blockHash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-        const newBlock = this.createNewBlock(nonce, lastBlock.hash, blockHash);
+        const newBlock = this.createNewBlock(nonce, lastBlock.Hash, blockHash);
 
         this.pubsub.publish({
             Data: newBlock,
