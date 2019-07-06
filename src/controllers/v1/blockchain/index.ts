@@ -45,7 +45,7 @@ class Blockchain {
             Index: this.Chain.length + 1,
             Nonce: nonce,
             PreviousBlockHash: previousBlockHash,
-            Timestamp: Date.now(),
+            Timestamp: this.Chain.length ? Date.now() : 0,
             Transactions: this.PendingTransactions,
         };
 
