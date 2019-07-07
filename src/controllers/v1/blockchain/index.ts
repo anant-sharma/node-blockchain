@@ -190,7 +190,11 @@ class Blockchain {
             Event: PUBSUB_EVENTS.CHAIN.PUBLISHED,
         };
 
-        MQ.writeToQueue(data.ReplyQueue, JSON.stringify(msg));
+        MQ.writeToQueue(data.ReplyQueue, JSON.stringify(msg), {
+            autoDelete: true,
+            durable: true,
+            exclusive: false,
+        });
     }
 
     private async requestChain() {

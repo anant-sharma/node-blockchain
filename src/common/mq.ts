@@ -70,9 +70,15 @@ export class MQ {
         return this.channel.assertQueue(queue, options);
     }
 
-    public static async writeToQueue(queue = '', data: string) {
+    public static async writeToQueue(
+        queue = '',
+        data: string,
+        options: amqp.Options.AssertQueue = {
+            durable: true,
+        }
+    ) {
         if (!this.queues.includes(queue)) {
-            await this.createQueue(queue);
+            await this.createQueue(queue, options);
             this.queues.push(queue);
         }
 
