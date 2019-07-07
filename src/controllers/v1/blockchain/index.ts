@@ -239,6 +239,12 @@ class Blockchain {
 
         // Return if incoming chain is shorter than current chain
         if (Chain.length <= this.Chain.length) {
+            if (
+                this.PendingTransactions.length < PendingTransactions.length &&
+                this.areTransactionsValid(PendingTransactions)
+            ) {
+                this.PendingTransactions = PendingTransactions;
+            }
             return;
         }
 
@@ -270,11 +276,7 @@ class Blockchain {
     private isChainValid(chain: IBlock[]) {
         let isValid = true;
 
-        for (let i = 1; i < chain.length; i++) {
-            if (!isValid) {
-                break;
-            }
-
+        for (let i = 1; i < chain.length && isValid; i++) {
             const block: IBlock = chain[i];
             const previousBlock: IBlock = chain[i - 1];
 
@@ -296,6 +298,19 @@ class Blockchain {
                     block.Nonce
                 )
             ) {
+                isValid = false;
+                break;
+            }
+        }
+
+        return isValid;
+    }
+
+    private areTransactionsValid(transactions: ITransaction[]) {
+        let isValid = true;
+
+        for (let i = 0; i < this.PendingTransactions.length && isValid; i++) {
+            if (!isEqual(this.PendingTransactions[i], transactions[i])) {
                 isValid = false;
                 break;
             }
