@@ -10,6 +10,10 @@ export const PUBSUB_EVENTS = {
     BLOCK: {
         MINED: 'BLOCK.MINED',
     },
+    CHAIN: {
+        PUBLISHED: 'CHAIN.PUBLISHED',
+        REQUESTED: 'CHAIN.REQUESTED',
+    },
     TRANSACTION: {
         CREATED: 'TRANSACTION.CREATED',
     },
@@ -27,8 +31,8 @@ export class PubSub {
         this.init();
     }
 
-    public publish(data: IPubSubMessage) {
-        MQ.publish(this.exchange, '', JSON.stringify(data));
+    public publish(data: IPubSubMessage, exchange = this.exchange, queue = '') {
+        MQ.publish(exchange, queue, JSON.stringify(data));
     }
 
     public async subscribe(onMessage: (msgContent: IPubSubMessage, msg?: Buffer) => any) {

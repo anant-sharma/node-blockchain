@@ -2,7 +2,9 @@
  * This file contains the code required to
  * handle operations corresponding to blockchain
  */
+import { isEqual } from 'lodash';
 import * as sha256 from 'sha256';
+import { MQ } from '../../../common/mq';
 import { generateUUID } from '../../../common/utils';
 import { IPubSubMessage, PubSub, PUBSUB_EVENTS } from '../pubsub/pubsub';
 
@@ -27,6 +29,10 @@ interface ITransaction {
     TransactionID: string;
 }
 
+interface IChainRequest {
+    ReplyQueue: string;
+}
+
 class Blockchain {
     private Chain: IBlock[] = [];
     private PendingTransactions: ITransaction[] = [];
@@ -37,6 +43,11 @@ class Blockchain {
         this.createNewBlock(11, sha256('previousBlockHash'), sha256('hash'));
         this.pubsub = new PubSub('bc.msg.exchange');
         this.addSubscribers();
+
+        setTimeout(() => {
+            console.log('[*] Initiating Chain Request');
+            this.requestChain();
+        }, 5000);
     }
 
     public createNewBlock(nonce: number, previousBlockHash: string, hash: string): IBlock {
@@ -160,8 +171,133 @@ class Blockchain {
                     this.addMinedBlockToChain(Data);
                     break;
                 }
+                case PUBSUB_EVENTS.CHAIN.REQUESTED: {
+                    this.publishChain(Data);
+                    break;
+                }
             }
         });
+    }
+
+    private publishChain(data: IChainRequest) {
+        const blockChain = {
+            Chain: this.Chain,
+            PendingTransactions: this.PendingTransactions,
+        };
+
+        const msg = {
+            Data: blockChain,
+            Event: PUBSUB_EVENTS.CHAIN.PUBLISHED,
+        };
+
+        MQ.writeToQueue(data.ReplyQueue, JSON.stringify(msg));
+    }
+
+    private async requestChain() {
+        // Create Reply Queue
+        const queue = generateUUID();
+        await MQ.createQueue(queue, {
+            autoDelete: true,
+            durable: true,
+            exclusive: false,
+        });
+
+        // Publish Chain Request
+        this.pubsub.publish({
+            Data: {
+                ReplyQueue: queue,
+            },
+            Event: PUBSUB_EVENTS.CHAIN.REQUESTED,
+        });
+
+        // Add Listeners
+        MQ.establishWorker(
+            queue,
+            (msgContent: string, msg: any) => {
+                const { Event, Data } = JSON.parse(msgContent);
+
+                switch (Event) {
+                    case PUBSUB_EVENTS.CHAIN.PUBLISHED: {
+                        console.log('[*] Initiating Chain Synchronization');
+                        this.synchroniseChain(Data);
+                        break;
+                    }
+                }
+            },
+            {
+                noAck: true,
+            }
+        );
+    }
+
+    private async synchroniseChain(chain: Blockchain) {
+        const { Chain, PendingTransactions } = chain;
+
+        // Return if incoming chain is shorter than current chain
+        if (Chain.length <= this.Chain.length) {
+            return;
+        }
+
+        // Check if incoming chain is valid
+        if (!this.isChainValid(Chain)) {
+            return;
+        }
+
+        let isValid = true;
+
+        for (let i = 0; i < this.Chain.length; i++) {
+            if (!isValid) {
+                break;
+            }
+
+            // Check if blocks are equal
+            if (!isEqual(this.Chain[i], Chain[i])) {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid) {
+            this.Chain = Chain;
+            this.PendingTransactions = PendingTransactions;
+        }
+    }
+
+    private isChainValid(chain: IBlock[]) {
+        let isValid = true;
+
+        for (let i = 1; i < chain.length; i++) {
+            if (!isValid) {
+                break;
+            }
+
+            const block: IBlock = chain[i];
+            const previousBlock: IBlock = chain[i - 1];
+
+            // Hash Matching
+            if (previousBlock.Hash !== block.Hash) {
+                isValid = false;
+                break;
+            }
+
+            // Check Current Block Hash
+            if (
+                block.Hash !==
+                this.hashBlock(
+                    previousBlock.Hash,
+                    {
+                        Index: i,
+                        Transactions: block.Transactions,
+                    },
+                    block.Nonce
+                )
+            ) {
+                isValid = false;
+                break;
+            }
+        }
+
+        return isValid;
     }
 }
 
