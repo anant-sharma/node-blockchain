@@ -137,7 +137,7 @@ class Blockchain {
 
     public mineBlock(): IBlock {
         const lastBlock = this.getLastBlock();
-        const previousBlockHash = lastBlock.PreviousBlockHash;
+        const previousBlockHash = lastBlock.Hash;
 
         const currentBlockData = {
             Index: lastBlock.Index + 1,
@@ -148,7 +148,7 @@ class Blockchain {
 
         const blockHash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-        const newBlock = this.createNewBlock(nonce, lastBlock.Hash, blockHash);
+        const newBlock = this.createNewBlock(nonce, previousBlockHash, blockHash);
 
         this.pubsub.publish({
             Data: newBlock,
@@ -281,7 +281,7 @@ class Blockchain {
             const previousBlock: IBlock = chain[i - 1];
 
             // Hash Matching
-            if (previousBlock.Hash !== block.Hash) {
+            if (previousBlock.Hash !== block.PreviousBlockHash) {
                 isValid = false;
                 break;
             }
@@ -292,7 +292,7 @@ class Blockchain {
                 this.hashBlock(
                     previousBlock.Hash,
                     {
-                        Index: i,
+                        Index: i + 1,
                         Transactions: block.Transactions,
                     },
                     block.Nonce
